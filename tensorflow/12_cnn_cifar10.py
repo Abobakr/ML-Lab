@@ -19,7 +19,7 @@ model = tf.keras.Sequential([
 	tf.keras.layers.Dense(10, activation="softmax"),
 ])
 model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
-model.fit(features_train, target_train, epochs=2, batch_size=64, verbose=0)
+model.fit(features_train, target_train, epochs=20, batch_size=64, verbose=0)
 _, accuracy = model.evaluate(features_test, target_test, verbose=0)
 
 print(f"CNN CIFAR-10 accuracy: {accuracy:.3f}")

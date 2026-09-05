@@ -1,34 +1,58 @@
 import numpy as np
+import tensorflow as tf
 import gymnasium as gym
 
 
 environment = gym.make("CliffWalking-v1")
+tf.random.set_seed(42)
 random_generator = np.random.default_rng(42)
-q_table = np.zeros((environment.observation_space.n, environment.action_space.n))
-learning_rate = 0.1
+n_states = environment.observation_space.n
+n_actions = environment.action_space.n
+
+model = tf.keras.Sequential([
+	tf.keras.layers.Input(shape=(n_states,)),
+	tf.keras.layers.Dense(32, activation="relu"),
+	tf.keras.layers.Dense(n_actions),
+])
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
 discount_factor = 0.95
 
-for episode in range(5000):
+
+def one_hot(state):
+	vector = np.zeros((1, n_states), dtype="float32")
+	vector[0, state] = 1.0
+	return vector
+
+
+for episode in range(500):
 	observation, _ = environment.reset(seed=episode)
 	finished = False
 	while not finished:
-		exploration_rate = max(0.05, 1 - episode / 4000)
+		exploration_rate = max(0.05, 1 - episode / 400)
+		state_vector = one_hot(observation)
 		if random_generator.random() < exploration_rate:
 			action = environment.action_space.sample()
 		else:
-			action = int(np.argmax(q_table[observation]))
+			action = int(np.argmax(model(state_vector, training=False)[0]))
+
 		next_observation, reward, terminated, truncated, _ = environment.step(action)
-		best_future_value = 0 if terminated else np.max(q_table[next_observation])
-		q_table[observation, action] += learning_rate * (
-			reward + discount_factor * best_future_value - q_table[observation, action]
-		)
+		next_state_vector = one_hot(next_observation)
+		best_future_value = 0 if terminated else tf.reduce_max(model(next_state_vector, training=False)[0])
+		target = reward + discount_factor * best_future_value
+
+		with tf.GradientTape() as tape:
+			q_values = model(state_vector, training=True)[0]
+			loss = tf.square(target - q_values[action])
+		gradients = tape.gradient(loss, model.trainable_variables)
+		optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+
 		observation = next_observation
 		finished = terminated or truncated
 
 observation, _ = environment.reset(seed=123)
 total_reward = 0
 for _ in range(200):
-	action = int(np.argmax(q_table[observation]))
+	action = int(np.argmax(model(one_hot(observation), training=False)[0]))
 	observation, reward, terminated, truncated, _ = environment.step(action)
 	total_reward += reward
 	if terminated or truncated:

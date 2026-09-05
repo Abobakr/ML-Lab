@@ -2,6 +2,8 @@
 
 A compact, executable overview of machine learning and artificial neural networks. Every lesson is a black-box implementation built around established Python libraries, with deterministic seeds where randomness is involved.
 
+Most topics share identical code between tracks; `10`, `12`, and `14` are TensorFlow-only (the sklearn file points to the tensorflow one). `11` differs: sklearn uses tabular Q-learning, tensorflow uses a neural Q-function (DQN-style) trained with `tf.GradientTape`.
+
 ## Setup
 
 Use Python 3.13 for TensorFlow on native Windows:

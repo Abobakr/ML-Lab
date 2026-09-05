@@ -24,7 +24,7 @@ datasets>=3,<6
 tokenizers>=0.20,<1
 
 # Reinforcement learning environments
-gymnasium>=1,<2
+gymnasium==1.0.0
 
 # Common utilities for datasets and training output
 pillow>=10,<13

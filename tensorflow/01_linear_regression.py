@@ -14,7 +14,7 @@ model = tf.keras.Sequential([
 	tf.keras.layers.Input(shape=(1,)),
 	tf.keras.layers.Dense(1),
 ])
-model.compile(optimizer="adam", loss="mse")
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.1), loss="mse")
 model.fit(features_train, target_train, epochs=250, verbose=0)
 predictions = model.predict(features_test, verbose=0)[:, 0]
 rmse = tf.sqrt(tf.reduce_mean(tf.square(target_test - predictions)))

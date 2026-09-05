@@ -6,8 +6,8 @@ import gymnasium as gym
 environment = gym.make("CliffWalking-v1")
 tf.random.set_seed(42)
 random_generator = np.random.default_rng(42)
-n_states = environment.observation_space.n
-n_actions = environment.action_space.n
+n_states = int(environment.observation_space.n)
+n_actions = int(environment.action_space.n)
 
 model = tf.keras.Sequential([
 	tf.keras.layers.Input(shape=(n_states,)),

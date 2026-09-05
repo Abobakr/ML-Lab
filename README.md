@@ -4,20 +4,24 @@ A compact, executable overview of machine learning and artificial neural network
 
 Most topics share identical code between tracks; `10`, `12`, and `14` are TensorFlow-only (the sklearn file points to the tensorflow one). `11` differs: sklearn uses tabular Q-learning, tensorflow uses a neural Q-function (DQN-style) trained with `tf.GradientTape`.
 
-## Setup
+## Setup (WSL / Linux)
 
-Use Python 3.13 for TensorFlow on native Windows:
-
-```powershell
-py -3.13 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-```
-
-In Git Bash, activate with:
+Set up Python 3.13 and create a virtual environment in WSL:
 
 ```bash
-source .venv/Scripts/activate
+# Add deadsnakes PPA and install Python 3.13
+sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt update && sudo apt install python3.13 python3.13-venv python3.13-dev -y
+
+# Create virtual environment
+python3.13 -m venv .venv
+
+# Activate virtual environment
+source .venv/bin/activate
+
+# Install dependencies
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
 ## Tracks
@@ -34,7 +38,7 @@ python sklearn/18_hyperparameter_tuning.py
 python tensorflow/03_ann_mnist.py
 ```
 
-Run every lesson in one track from Git Bash:
+Run every lesson in one track directly from your terminal:
 
 ```bash
 for folder in sklearn tensorflow; do
@@ -51,4 +55,6 @@ done
 
 ## Notes
 
-The first execution of MNIST, CIFAR-10, and the transformer lesson downloads and caches data or model files. Native Windows TensorFlow uses the CPU; GPU workloads are better suited to WSL2 or a Linux environment. Generated caches, environments, and local model/output artifacts are excluded by `.gitignore`.
+The first execution of MNIST, CIFAR-10, and the transformer lesson downloads and caches data or model files. Running inside WSL2 enables native Linux TensorFlow. GPU acceleration additionally requires an NVIDIA driver on Windows and matching CUDA/cuDNN packages inside WSL — it is not automatic. Generated caches, environments, and local model/output artifacts are excluded by `.gitignore`.
+
+`tensorflow/11_q_learning.py` casts `environment.observation_space.n` / `.action_space.n` to `int()` — Gymnasium returns NumPy integers, which newer Keras versions reject for layer `units`.

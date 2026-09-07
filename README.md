@@ -58,3 +58,5 @@ done
 The first execution of MNIST, CIFAR-10, and the transformer lesson downloads and caches data or model files. Running inside WSL2 enables native Linux TensorFlow. GPU acceleration additionally requires an NVIDIA driver on Windows and matching CUDA/cuDNN packages inside WSL — it is not automatic. Generated caches, environments, and local model/output artifacts are excluded by `.gitignore`.
 
 `tensorflow/11_q_learning.py` casts `environment.observation_space.n` / `.action_space.n` to `int()` — Gymnasium returns NumPy integers, which newer Keras versions reject for layer `units`.
+
+`tensorflow/11_q_learning.py` wraps its per-step training logic in `@tf.function` for a significant speedup over eager execution.

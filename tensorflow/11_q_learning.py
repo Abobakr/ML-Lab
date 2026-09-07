@@ -24,10 +24,20 @@ def one_hot(state):
 	return vector
 
 
+@tf.function
+def train_step(state_vector, action, target):
+	with tf.GradientTape() as tape:
+		q_values = model(state_vector, training=True)[0]
+		loss = tf.square(target - q_values[action])
+	gradients = tape.gradient(loss, model.trainable_variables)
+	optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+
+
 for episode in range(500):
 	observation, _ = environment.reset(seed=episode)
 	finished = False
-	while not finished:
+	step_count = 0
+	while not finished and step_count < 100:
 		exploration_rate = max(0.05, 1 - episode / 400)
 		state_vector = one_hot(observation)
 		if random_generator.random() < exploration_rate:
@@ -37,17 +47,14 @@ for episode in range(500):
 
 		next_observation, reward, terminated, truncated, _ = environment.step(action)
 		next_state_vector = one_hot(next_observation)
-		best_future_value = 0 if terminated else tf.reduce_max(model(next_state_vector, training=False)[0])
-		target = reward + discount_factor * best_future_value
+		best_future_value = 0.0 if terminated else float(tf.reduce_max(model(next_state_vector, training=False)[0]))
+		target = tf.constant(reward + discount_factor * best_future_value, dtype="float32")
 
-		with tf.GradientTape() as tape:
-			q_values = model(state_vector, training=True)[0]
-			loss = tf.square(target - q_values[action])
-		gradients = tape.gradient(loss, model.trainable_variables)
-		optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+		train_step(tf.constant(state_vector), tf.constant(action), target)
 
 		observation = next_observation
 		finished = terminated or truncated
+		step_count += 1
 
 observation, _ = environment.reset(seed=123)
 total_reward = 0

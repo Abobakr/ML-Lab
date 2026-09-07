@@ -882,7 +882,6 @@ def one_hot(state):
 	return vector
 ```
 - **One-hot encoding**: converts a single state number (e.g., state `17`) into a vector of all zeros except a single `1` at position 17 (e.g., `[0,0,...,0,1,0,...,0]`). This is the standard way to feed a "which one of N categories" input into a neural network, since the network expects a vector, not a bare integer. (Note: `environment.action_space.n` returns a NumPy integer; Keras's `Dense` layer requires a plain Python `int`, so both are wrapped in `int(...)`.)
-
 - `np.zeros((1, n_states), ...)` — the extra `1` in the shape (`(1, n_states)` instead of just `(n_states,)`) is because Keras models always expect a **batch dimension** — even for a single example, it must be "a batch containing 1 example," not a bare unbatched vector.
 
 ```python
@@ -922,6 +921,8 @@ for episode in range(500):
 - `tape.gradient(loss, model.trainable_variables)` — computes, via calculus (**backpropagation**), exactly how much each of the network's internal weights contributed to this loss.
 - `optimizer.apply_gradients(...)` — nudges every weight slightly in the direction that would have reduced this loss, using Adam's learning rate (0.01).
 - `zip(gradients, model.trainable_variables)` — pairs each computed gradient with the specific weight variable it belongs to, since `apply_gradients` needs to know which gradient updates which weight.
+
+(Note: wrapping this update logic in a function decorated with `@tf.function` compiles it into a static graph once, instead of re-tracing Python + eager TensorFlow calls on every single step — a 3–5x speedup for step-by-step training loops like this one.)
 
 This entire block runs **once per single step** the agent takes (not once per episode, not once for the whole dataset) — this step-by-step, "learn immediately from one experience" pattern is characteristic of **online reinforcement learning**, quite different from the "gather a big dataset first, then train" pattern used everywhere else in this repo.
 
@@ -998,6 +999,8 @@ result = generator(
 - `num_return_sequences=1` — generate just 1 possible continuation (you could ask for several different candidate completions at once).
 - `do_sample=False` — use **greedy decoding**: at each step, always pick the single most probable next token. This makes output fully deterministic (same input always gives the same output — no `random_state` needed here, unlike everywhere else in this repo). Setting this to `True` instead would introduce controlled randomness, producing more varied/creative (but less predictable) text.
 - `clean_up_tokenization_spaces=False` — a minor text-formatting setting controlling whether extra spaces around punctuation get automatically cleaned up in the final output.
+
+(Note: running this may print a harmless deprecation warning about `generation_config` and `max_length` colliding with `max_new_tokens` — this comes from the library's internal default config, not a bug in this script, and `max_new_tokens=30` still takes effect correctly.)
 
 ```python
 print(result[0]["generated_text"])

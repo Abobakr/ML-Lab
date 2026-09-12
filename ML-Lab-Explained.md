@@ -159,7 +159,7 @@ print(f"Silhouette score: {silhouette_score(features, labels):.3f}")
 
 ---
 
-### Lesson 03 — ANN on Digits (`03_ann_mnist.py`, sklearn version)
+### Lesson 03 — ANN on Digits (`03_ann_digits.py`, sklearn version)
 
 **New concept: Artificial Neural Network (ANN)**, and **classification** (predicting a category, not a number).
 

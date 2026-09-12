@@ -159,7 +159,7 @@ print(f"Silhouette score: {silhouette_score(features, labels):.3f}")
 
 ---
 
-### الدرس 03 — شبكة عصبية اصطناعية على الأرقام (`03_ann_mnist.py`، نسخة sklearn)
+### الدرس 03 — شبكة عصبية اصطناعية على الأرقام (`03_ann_digits.py`، نسخة sklearn)
 
 **مفهوم جديد: الشبكة العصبية الاصطناعية (ANN)**، و**التصنيف (classification)** (التنبؤ بفئة، وليس رقمًا).
 

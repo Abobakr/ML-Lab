@@ -1,5 +1,7 @@
 import numpy as np
 import tensorflow as tf
+import matplotlib.pyplot as plt
+from pathlib import Path
 
 
 tf.random.set_seed(42)
@@ -25,3 +27,18 @@ r2 = 1 - tf.reduce_sum(tf.square(target_test - predictions)) / tf.reduce_sum(
 
 print(f"R2: {float(r2):.3f}")
 print(f"RMSE: {float(rmse):.3f}")
+
+# Visualization: show the held-out data and the network's learned line.
+order = np.argsort(features_test[:, 0])
+figure, axes = plt.subplots(1, 2, figsize=(12, 4))
+axes[0].scatter(features_train[:, 0], target_train, alpha=0.35, label="Train")
+axes[0].scatter(features_test[:, 0], target_test, alpha=0.8, label="Test")
+axes[0].plot(features_test[order, 0], predictions[order], color="black", label="Prediction")
+axes[0].set(title="Learned regression line", xlabel="Feature", ylabel="Target")
+axes[0].legend()
+axes[1].scatter(predictions, target_test - predictions, alpha=0.8)
+axes[1].axhline(0, color="black", linestyle="--")
+axes[1].set(title="Residuals", xlabel="Predicted target", ylabel="Residual")
+figure.tight_layout()
+Path("outputs").mkdir(exist_ok=True)
+figure.savefig(f"outputs/{Path(__file__).parent.name}_{Path(__file__).stem}.png", dpi=150)

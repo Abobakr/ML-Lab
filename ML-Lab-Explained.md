@@ -159,7 +159,7 @@ print(f"Silhouette score: {silhouette_score(features, labels):.3f}")
 
 ---
 
-### Lesson 03 — ANN on Digits (`03_ann_digits.py`, sklearn version)
+### Lesson 03 — ANN on Digits (`03_ann_mnist.py`, sklearn version)
 
 **New concept: Artificial Neural Network (ANN)**, and **classification** (predicting a category, not a number).
 
@@ -1009,7 +1009,103 @@ print(result[0]["generated_text"])
 
 ---
 
-## Part 3 — Concepts That Appear Everywhere (Glossary)
+## Part 3 — The Visualizations
+
+Every implemented lesson (not the stub/delegate files) now ends with a block marked `# Visualization:`. This section explains the shared pattern once, then what each specific plot shows.
+
+### The shared saving pattern
+
+Every visualization block ends with:
+```python
+figure.tight_layout()
+Path("outputs").mkdir(exist_ok=True)
+figure.savefig(f"outputs/{Path(__file__).parent.name}_{Path(__file__).stem}.png", dpi=150)
+```
+- `figure.tight_layout()` — automatically adjusts spacing between subplots/titles/labels so nothing overlaps or gets cut off at the edges.
+- `Path("outputs").mkdir(exist_ok=True)` — creates an `outputs/` folder if it doesn't already exist; `exist_ok=True` means "don't error if it's already there."
+- `Path(__file__).parent.name` — the name of the folder containing the currently running script (`sklearn` or `tensorflow`), used as a prefix so that, e.g., `sklearn/01_linear_regression.py` and `tensorflow/01_linear_regression.py` save to two different files instead of overwriting each other.
+- `Path(__file__).stem` — the script's own filename without the `.py` extension.
+- `dpi=150` — image resolution (dots per inch); higher than the default 100 for a crisper saved image.
+
+**Why save instead of `plt.show()`?** `plt.show()` opens an interactive window, which requires a graphical display. On a headless environment (a plain WSL terminal, a server, CI) there is no display, so `plt.show()` silently does nothing (or prints a harmless warning). Saving to a file works everywhere, and gives you a permanent artifact to look at afterward instead of a window that closes when the script ends.
+
+### Lesson-by-lesson visualization notes (sklearn track)
+
+- **`01_linear_regression.py`** — two side-by-side plots: (1) actual vs. predicted values as a scatter, with a diagonal dashed reference line — points sitting exactly on that diagonal are perfect predictions; (2) a residual plot (predicted value vs. error) — a random scatter around the zero line is a good sign; a visible curve or pattern would suggest the model is missing something.
+- **`02_kmeans_clustering.py`** — a scatter plot colored by cluster assignment (`c=labels`), with the three cluster centers marked as large black X's, so you can visually confirm the centers sit in the middle of their color group.
+- **`03_ann_digits.py`** — a confusion matrix: rows are the true digit, columns are the predicted digit, and each cell's shade shows how often that combination occurred. A strong diagonal (dark squares only on the diagonal) means the classifier rarely confuses digits.
+- **`04_train_test_split.py`** — a grouped bar chart comparing how many samples of each class landed in the training set vs. the test set, visually confirming the `stratify=` split kept class proportions balanced.
+- **`05_knn_classifier.py`** — a scatter of test points colored by KNN's predicted class, next to a confusion matrix.
+- **`06_svm_classifier.py`** — confusion matrix only (the dataset has 30 features, far more than 2, so there's no simple 2D scatter that would represent it meaningfully).
+- **`07_naive_bayes.py`** — overlapping histograms of one feature's values, split by true class, next to a confusion matrix — visually shows the bell-curve-per-class assumption Naive Bayes relies on.
+- **`08_random_forest.py`** — a bar chart of `feature_importances_` (one bar per input feature) next to a confusion matrix.
+- **`09_logistic_regression.py`** — a confusion matrix next to an ROC curve (true positive rate vs. false positive rate as the classification threshold varies); a curve that hugs the top-left corner indicates strong separation between classes.
+- **`11_q_learning.py`** — two plots: (1) a smoothed reward curve (`np.convolve` with a 100-episode moving-average window) showing the agent's performance climbing over training; (2) the greedy policy reshaped into the actual 4×12 CliffWalking grid and shown as a heatmap, so you can see which action (color) the agent picked in each grid cell.
+- **`13_sentiment_analysis.py`** — a horizontal bar chart of the 5 most negative and 5 most positive learned word/phrase coefficients, colored by sign — shows exactly which n-grams push the model's prediction toward "positive" or "negative."
+- **`15_pca_reduction.py`** — a cumulative explained-variance curve (with a dashed line at the 95% target) next to a 2D scatter of the digits projected onto their first two principal components, colored by true digit label — you can see digits of the same value clustering together even in just 2 of the ~40 retained dimensions.
+- **`16_data_preprocessing.py`** — a bar chart of the raw (pre-imputation) numeric feature next to a heatmap of the fully transformed feature matrix (imputed, scaled, one-hot encoded) — a visual "before and after" of the preprocessing pipeline.
+- **`17_cross_validation.py`** — a line plot of each fold's accuracy score, with a dashed horizontal line at the mean — lets you see at a glance how much the folds varied.
+- **`18_hyperparameter_tuning.py`** — a heatmap of validation accuracy across the `C` × `kernel` grid, with a color bar. (Note: `cv_results_["mean_test_score"]` is ordered with `C` varying slowest and `kernel` fastest, since `GridSearchCV` sorts by parameter name alphabetically — so the correct reshape is `(3, 2)` — 3 values of `C`, 2 kernels — not `(2, 3)`.)
+- **`19_gradient_boosting.py`** — confusion matrix only.
+- **`20_model_persistence.py`** — overlaid markers of the original model's predictions and the reloaded model's predictions across every sample — if persistence worked correctly, every "x" (restored) should sit exactly on top of its matching "o" (original).
+
+### Lesson-by-lesson visualization notes (tensorflow track — implementations only)
+
+- **`01_linear_regression.py`** — the learned regression line drawn through both the training and test scatter points, next to a residual plot — same idea as sklearn's Lesson 01, but this time the "line" comes from a trained neuron's weight and bias rather than a closed-form solution.
+- **`03_ann_mnist.py`** — three panels: (1) a training-history curve of accuracy and loss over each epoch; (2) a confusion matrix on the real MNIST test set; (3) one example test image with its predicted label, so you can see an actual handwritten digit alongside the model's guess.
+- **`10_rnn_timeseries.py`** — the true time-series values overlaid with the RNN's predicted values on the held-out tail of the sequence — the two lines nearly overlapping is a sign the network learned the underlying wave pattern.
+- **`11_q_learning.py`** — three panels, one more than the tabular version: (1) a smoothed reward curve (25-episode window, shorter than the tabular version's 100 since there are only 500 episodes here instead of 5,000); (2) a **training loss curve** — something the tabular Q-table version has no equivalent of, since it isn't trained via gradient descent; (3) the greedy policy read out from the network (`model(np.eye(n_states), ...)` feeds every possible one-hot state through the network at once) and reshaped into the same 4×12 grid heatmap as the tabular version, for direct comparison.
+- **`12_cnn_cifar10.py`** — training-history curve next to a confusion matrix over the 10 CIFAR-10 classes — with only 10,000 training images and 20 epochs, expect a visibly noisier confusion matrix than MNIST's.
+- **`14_transformers_llm.py`** — completely different from the other lessons' code, and now different from the version described in the main text above. The plotting rewrite replaced the `pipeline`-based text panel with a genuine model-behavior chart:
+
+```python
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("distilgpt2")
+model = AutoModelForCausalLM.from_pretrained("distilgpt2")
+```
+  - Unlike the earlier `pipeline("text-generation", ...)` shortcut, this loads the tokenizer and model **separately**, giving direct access to the model's raw outputs instead of only the final decoded text.
+
+```python
+output = model.generate(
+	**inputs,
+	max_new_tokens=15,
+	do_sample=False,
+	return_dict_in_generate=True,
+	output_scores=True,
+)
+```
+  - `return_dict_in_generate=True` — instead of returning just the generated token IDs, return a structured object with multiple pieces of information attached.
+  - `output_scores=True` — additionally return the raw, un-normalized prediction scores (**logits**) the model produced at *every single generation step*, not just the final chosen tokens. This is the key addition that makes a real visualization possible.
+
+```python
+generated_ids = output.sequences[0][inputs["input_ids"].shape[1]:]
+tokens = []
+probabilities = []
+for score, token_id in zip(output.scores, generated_ids):
+	token = tokenizer.decode([token_id])
+	if "\n" in token:
+		break
+	tokens.append(token)
+	probabilities.append(torch.softmax(score[0], dim=-1)[token_id].item())
+```
+  - `output.sequences[0]` contains the **entire** sequence: prompt tokens plus generated tokens. Slicing off the prompt's length (`inputs["input_ids"].shape[1]`) leaves just the newly generated token IDs.
+  - Looping `zip(output.scores, generated_ids)` pairs each generation step's raw score vector with the token ID that was actually chosen at that step.
+  - `torch.softmax(score[0], dim=-1)` — converts that step's raw scores (one number per possible vocabulary token, tens of thousands of them) into a proper probability distribution.
+  - `[token_id]` — picks out, from that full probability distribution, specifically the probability assigned to the token the model actually generated — i.e., "how confident was the model in the word it just chose?"
+  - `if "\n" in token: break` — distilgpt2 tends to keep generating past a natural sentence ending, often producing repeated blank-line tokens. This stops collecting tokens as soon as a newline appears, so the chart only covers the meaningful generated sentence instead of trailing invisible whitespace bars.
+
+```python
+axis.bar(range(len(tokens)), probabilities, color="steelblue")
+axis.set_xticklabels(tokens, rotation=45, ha="right")
+```
+  - One bar per generated token, labeled with the token text itself along the x-axis, rotated 45° so labels don't overlap.
+  - A tall bar means the model was very confident in that word given everything generated so far; a short bar means several different next words were all plausible and the model picked the top one only narrowly.
+
+This is meaningfully more informative than just displaying the generated sentence as text: it shows *where* in the generation process the model was certain versus uncertain — for instance, function words like "a" or "the" often have flatter (less confident) distributions than the first word right after a strong prompt.
+
+## Part 4 — Concepts That Appear Everywhere (Glossary)
 
 - **Overfitting**: when a model learns the training data *too* well — including its noise and quirks — and performs great on training data but poorly on new, unseen data. Symptoms: very high training accuracy, much lower test accuracy. Ways this repo guards against it: train/test splits, cross-validation, `early_stopping=True`, regularization (SVM's `C`), and limiting model complexity.
 - **Underfitting**: the opposite problem — the model is too simple to capture the real pattern, and performs poorly on *both* training and test data.
